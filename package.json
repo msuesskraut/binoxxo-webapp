@@ -1,8 +1,8 @@
 {
-  "author": "Nick Fitzgerald <nfitzgerald@mozilla.com>",
-  "name": "create-rust-webpack",
-  "version": "0.1.5",
-  "repository": "https://github.com/rustwasm/rust-webpack-template",
+  "author": "Martin Suesskraut <martin.suesskraut@gmail.com>",
+  "name": "binoxxo-webapp",
+  "version": "0.1.0",
+  "repository": "https://github.com/msuesskraut/binoxxo-webapp",
   "license": "Apache-2.0/MIT",
   "scripts": {
     "start": "webpack-dev-server -d",

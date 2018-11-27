@@ -2,8 +2,11 @@
 extern crate cfg_if;
 extern crate web_sys;
 extern crate wasm_bindgen;
+extern crate binoxxo;
 
 use wasm_bindgen::prelude::*;
+use std::str::FromStr;
+use binoxxo::field::Board;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -27,6 +30,15 @@ cfg_if! {
     }
 }
 
+const BOARD_SIZE : usize = 10;
+const BINOXXO_LEVEL : usize = 10;
+
+fn create_puzzle(level: usize) -> String {
+    let board = binoxxo::bruteforce::create_puzzle_board(BOARD_SIZE, level);
+
+    board.to_string()
+}
+
 // Called by our JS entry point to run the example.
 #[wasm_bindgen]
 pub fn run() -> Result<(), JsValue> {
@@ -35,8 +47,8 @@ pub fn run() -> Result<(), JsValue> {
     let window = web_sys::window().expect("should have a Window");
     let document = window.document().expect("should have a Document");
 
-    let p: web_sys::Node = document.create_element("p")?.into();
-    p.set_text_content(Some("Hello from Rust, WebAssembly, and Webpack!"));
+    let p: web_sys::Node = document.create_element("pre")?.into();
+    p.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
 
     let body = document.body().expect("should have a body");
     let body: &web_sys::Node = body.as_ref();
