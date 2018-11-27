@@ -5,8 +5,8 @@ extern crate wasm_bindgen;
 extern crate binoxxo;
 
 use wasm_bindgen::prelude::*;
-use std::str::FromStr;
-use binoxxo::field::Board;
+use binoxxo::field::{Board, Field};
+use wasm_bindgen::JsCast;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -33,10 +33,24 @@ cfg_if! {
 const BOARD_SIZE : usize = 10;
 const BINOXXO_LEVEL : usize = 10;
 
-fn create_puzzle(level: usize) -> String {
-    let board = binoxxo::bruteforce::create_puzzle_board(BOARD_SIZE, level);
+fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Element, JsValue> {
+    let table = doc.create_element("table")?.dyn_into::<web_sys::HtmlTableElement>()?;
+    let board_size = board.get_size();
 
-    board.to_string()
+    for row in 0..board_size {
+        let table_row = table.insert_row()?.dyn_into::<web_sys::HtmlTableRowElement>()?;
+        for col in 0..board_size {
+            let cell = table_row.insert_cell()?;
+            let cell_text = match board.get(col, row) {
+                Field::X => "X",
+                Field::O => "O",
+                Field::Empty => "_",
+            };
+            cell.set_text_content(Some(cell_text));
+        }
+    }
+
+    Ok(table.into())
 }
 
 // Called by our JS entry point to run the example.
@@ -50,13 +64,14 @@ pub fn run() -> Result<(), JsValue> {
     let title: web_sys::Node = document.create_element("h1")?.into();
     title.set_text_content(Some("Let's play Binoxxo"));
 
-    let board: web_sys::Node = document.create_element("pre")?.into();
-    board.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
+    let board = binoxxo::bruteforce::create_puzzle_board(BOARD_SIZE, BINOXXO_LEVEL);
+    let html_board = board_to_html(&board, &document)?; //web_sys::Node = document.create_element("pre")?.into();
+    //board.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
 
     let body = document.body().expect("should have a body");
     let body: &web_sys::Node = body.as_ref();
     body.append_child(&title)?;
-    body.append_child(&board)?;
+    body.append_child(&html_board)?;
 
     Ok(())
 }
