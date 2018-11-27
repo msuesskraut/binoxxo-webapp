@@ -47,12 +47,16 @@ pub fn run() -> Result<(), JsValue> {
     let window = web_sys::window().expect("should have a Window");
     let document = window.document().expect("should have a Document");
 
-    let p: web_sys::Node = document.create_element("pre")?.into();
-    p.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
+    let title: web_sys::Node = document.create_element("h1")?.into();
+    title.set_text_content(Some("Let's play Binoxxo"));
+
+    let board: web_sys::Node = document.create_element("pre")?.into();
+    board.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
 
     let body = document.body().expect("should have a body");
     let body: &web_sys::Node = body.as_ref();
-    body.append_child(&p)?;
+    body.append_child(&title)?;
+    body.append_child(&board)?;
 
     Ok(())
 }
