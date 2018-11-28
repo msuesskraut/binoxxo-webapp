@@ -35,6 +35,7 @@ const BINOXXO_LEVEL : usize = 10;
 
 fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Element, JsValue> {
     let table = doc.create_element("table")?.dyn_into::<web_sys::HtmlTableElement>()?;
+    table.set_attribute("class", "board")?;
     let board_size = board.get_size();
 
     for row in 0..board_size {

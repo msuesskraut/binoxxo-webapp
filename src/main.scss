@@ -1,0 +1,27 @@
+@import "~bootstrap/scss/bootstrap";
+
+$base_color : #202020;
+
+h1 {
+    font-size: 140%;
+    font-weight: bold;
+    margin: 1em;
+    text-align: center;
+}
+
+table.board {
+    margin: 2em;
+    border-collapse: collapse;
+
+    td {
+        border: 1px solid $base_color;
+        padding: 1em;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 800;
+    }
+}
+
+body {
+    background-color: #efefef;
+    color: $base_color;
+}
