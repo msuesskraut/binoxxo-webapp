@@ -5,6 +5,7 @@ extern crate wasm_bindgen;
 extern crate binoxxo;
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::closure::Closure;
 use binoxxo::field::{Board, Field};
 use wasm_bindgen::JsCast;
 
@@ -41,15 +42,24 @@ fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Elem
         let table_row = table.insert_row()?.dyn_into::<web_sys::HtmlTableRowElement>()?;
         for col in 0..board_size {
             let cell = table_row.insert_cell()?;
-            let (class, cell_text) = match board.get(col, row) {
-                Field::X => ("fixed", "X"),
-                Field::O => ("fixed", "O"),
-                Field::Empty => ("guess", "_"),
+            let (class, cell_text, need_callback) = match board.get(col, row) {
+                Field::X => ("fixed", "X", false),
+                Field::O => ("fixed", "O", false),
+                Field::Empty => ("guess", "_", true),
             };
             cell.set_class_name(class);
-            cell.set_attribute("data-row", &row.to_string())?;
-            cell.set_attribute("data-col", &col.to_string())?;
             cell.set_text_content(Some(cell_text));
+            if need_callback {
+                let cb = Closure::wrap(Box::new(move |event: web_sys::Event| {
+                    web_sys::console::log_4(
+                        &"row =".into(), &(row as f64).into(),
+                        &"col =".into(), &(col as f64).into());
+                    let cell = event.target().unwrap().dyn_into::<web_sys::Element>().ok().unwrap();
+                    cell.set_text_content(Some("M"));
+                }) as Box<FnMut(web_sys::Event)>);
+                cell.add_event_listener_with_event_listener("click", cb.as_ref().unchecked_ref())?;
+                cb.forget();
+            }
         }
     }
 
