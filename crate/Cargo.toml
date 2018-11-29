@@ -36,6 +36,7 @@ features = [
   "HtmlTableElement",
   "HtmlTableRowElement",
   "Node",
+  "NodeList",
   "Window",
 ]
 

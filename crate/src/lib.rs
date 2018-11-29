@@ -35,18 +35,20 @@ const BINOXXO_LEVEL : usize = 10;
 
 fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Element, JsValue> {
     let table = doc.create_element("table")?.dyn_into::<web_sys::HtmlTableElement>()?;
-    table.set_attribute("class", "board")?;
     let board_size = board.get_size();
 
     for row in 0..board_size {
         let table_row = table.insert_row()?.dyn_into::<web_sys::HtmlTableRowElement>()?;
         for col in 0..board_size {
             let cell = table_row.insert_cell()?;
-            let cell_text = match board.get(col, row) {
-                Field::X => "X",
-                Field::O => "O",
-                Field::Empty => "_",
+            let (class, cell_text) = match board.get(col, row) {
+                Field::X => ("fixed", "X"),
+                Field::O => ("fixed", "O"),
+                Field::Empty => ("guess", "_"),
             };
+            cell.set_class_name(class);
+            cell.set_attribute("data-row", &row.to_string())?;
+            cell.set_attribute("data-col", &col.to_string())?;
             cell.set_text_content(Some(cell_text));
         }
     }
@@ -62,17 +64,13 @@ pub fn run() -> Result<(), JsValue> {
     let window = web_sys::window().expect("should have a Window");
     let document = window.document().expect("should have a Document");
 
-    let title: web_sys::Node = document.create_element("h1")?.into();
-    title.set_text_content(Some("Let's play Binoxxo"));
-
     let board = binoxxo::bruteforce::create_puzzle_board(BOARD_SIZE, BINOXXO_LEVEL);
-    let html_board = board_to_html(&board, &document)?; //web_sys::Node = document.create_element("pre")?.into();
-    //board.set_text_content(Some(&create_puzzle(BINOXXO_LEVEL)));
+    let html_board = board_to_html(&board, &document)?;
 
     let body = document.body().expect("should have a body");
-    let body: &web_sys::Node = body.as_ref();
-    body.append_child(&title)?;
-    body.append_child(&html_board)?;
+    let board_elem: web_sys::Element = body.query_selector("#board")?
+        .ok_or(JsValue::from_str("div#board not found"))?;
+    board_elem.append_child(&html_board)?;
 
     Ok(())
 }
