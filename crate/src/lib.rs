@@ -34,9 +34,11 @@ cfg_if! {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(module="../../src/index")]
 extern "C" {
-    fn alert(s: &str);
+    fn alert_clear();
+    fn alert_win();
+    fn alert_fail();
 }
 
 const BOARD_SIZE : usize = 6;
@@ -70,15 +72,15 @@ fn change_field(cell: &web_sys::Element, board: &mut Board, row: usize, col: usi
 }
 
 fn handle_guess(cell: &web_sys::Element, board: &mut Board, row: usize, col: usize) {
-    web_sys::console::log_5(&"handle_guess(..., row =".into(), &(row as f64).into(), &", col =".into(), &(col as f64).into(), &")".into());
+    //web_sys::console::log_5(&"handle_guess(..., row =".into(), &(row as f64).into(), &", col =".into(), &(col as f64).into(), &")".into());
+    alert_clear();
     change_field(cell, board, row, col);
     if is_board_full(board) {
-        let msg = if is_board_valid(board) {
-            "You have solved the puzzle."
+        if is_board_valid(board) {
+            alert_win();
         } else {
-            "No, that is not right. Please continue solving."
+            alert_fail();
         };
-        alert(msg);
     }
 }
 
@@ -123,11 +125,25 @@ pub fn run() -> Result<(), JsValue> {
 
     let window = web_sys::window().expect("should have a Window");
     let document = window.document().expect("should have a Document");
+    let body = document.body().expect("should have a body");
+
+    {
+        let location = window.location();
+        let new_game_btn: web_sys::Element = body.query_selector("#new_game_btn")?
+            .ok_or(JsValue::from_str("button#new_game_btn not found"))?;
+            let cb = Closure::wrap(Box::new(move |_event: web_sys::Event| {
+                let res = location.reload();
+                if res.is_err() {
+                    web_sys::console::log_2(&"reload faild with".into(), &res.err().unwrap());
+                }
+            }) as Box<FnMut(web_sys::Event)>);
+        new_game_btn.add_event_listener_with_event_listener("click", cb.as_ref().unchecked_ref())?;
+        cb.forget();
+    }
 
     let board = binoxxo::bruteforce::create_puzzle_board(BOARD_SIZE, BINOXXO_LEVEL);
     let html_board = board_to_html(&board, &document)?;
 
-    let body = document.body().expect("should have a body");
     let board_elem: web_sys::Element = body.query_selector("#board")?
         .ok_or(JsValue::from_str("div#board not found"))?;
     board_elem.append_child(&html_board)?;

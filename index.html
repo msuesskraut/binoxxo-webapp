@@ -7,8 +7,29 @@
     <title>Binoxxo Webapp</title>
   </head>
   <body>
-    <h1>Let's play Binoxxo</h1>
-    <div id="board"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1>Let's play Binoxxo</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-9">
+          <div id="board"></div>
+        </div>
+        <div class="col-3">
+          <button type="button" class="btn btn-primary" id="new_game_btn">New Game</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="alert alert-success" role="alert" id="alert_win">
+          Congrates: You solved the puzzle!
+        </div>
+        <div class="alert alert-danger" role="alert" id="alert_fail">
+          Your current solution is not correct, please try and change the board.
+        </div>
+      </div>
+    </div>
   </body>
 </html>
 
