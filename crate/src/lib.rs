@@ -4,6 +4,8 @@ extern crate web_sys;
 extern crate wasm_bindgen;
 extern crate binoxxo;
 
+use std::sync::RwLock;
+use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::closure::Closure;
 use binoxxo::field::{Board, Field};
@@ -34,9 +36,12 @@ cfg_if! {
 const BOARD_SIZE : usize = 10;
 const BINOXXO_LEVEL : usize = 10;
 
+
 fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Element, JsValue> {
     let table = doc.create_element("table")?.dyn_into::<web_sys::HtmlTableElement>()?;
     let board_size = board.get_size();
+
+    let the_board: Arc<RwLock<Board>> = Arc::new(RwLock::new((*board).clone()));
 
     for row in 0..board_size {
         let table_row = table.insert_row()?.dyn_into::<web_sys::HtmlTableRowElement>()?;
@@ -50,10 +55,13 @@ fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Elem
             cell.set_class_name(class);
             cell.set_text_content(Some(cell_text));
             if need_callback {
+                let board = the_board.clone();
                 let cb = Closure::wrap(Box::new(move |event: web_sys::Event| {
-                    web_sys::console::log_4(
+                    let field = board.read().unwrap().get(row, col);
+                    web_sys::console::log_6(
                         &"row =".into(), &(row as f64).into(),
-                        &"col =".into(), &(col as f64).into());
+                        &"col =".into(), &(col as f64).into(),
+                        &"field =".into(), &(field as i32 as f64).into());
                     let cell = event.target().unwrap().dyn_into::<web_sys::Element>().ok().unwrap();
                     cell.set_text_content(Some("M"));
                 }) as Box<FnMut(web_sys::Event)>);
