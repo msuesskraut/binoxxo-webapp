@@ -8,8 +8,9 @@ use std::sync::RwLock;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::closure::Closure;
-use binoxxo::field::{Board, Field};
 use wasm_bindgen::JsCast;
+use binoxxo::field::{Board, Field};
+use binoxxo::rules::{is_board_valid, is_board_full};
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -33,9 +34,53 @@ cfg_if! {
     }
 }
 
-const BOARD_SIZE : usize = 10;
-const BINOXXO_LEVEL : usize = 10;
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: &str);
+}
 
+const BOARD_SIZE : usize = 6;
+const BINOXXO_LEVEL : usize = 5;
+
+fn field_to_str(field: Field) -> &'static str {
+    match field {
+        Field::X => "X",
+        Field::O => "O",
+        Field::Empty => "_",
+    }
+}
+
+fn next_field_value(cur_field: Field) -> Field {
+    match cur_field {
+        Field::Empty => Field::X,
+        Field::X => Field::O,
+        Field::O => Field::Empty,
+    }
+}
+
+fn change_field(cell: &web_sys::Element, board: &mut Board, row: usize, col: usize) {
+    let field = board.get(col, row);
+    let next_field = next_field_value(field);
+    if Field::Empty == next_field {
+        board.clear(col, row);
+    } else {
+        board.set(col, row, next_field);
+    }
+    cell.set_text_content(Some(field_to_str(next_field)));
+}
+
+fn handle_guess(cell: &web_sys::Element, board: &mut Board, row: usize, col: usize) {
+    web_sys::console::log_5(&"handle_guess(..., row =".into(), &(row as f64).into(), &", col =".into(), &(col as f64).into(), &")".into());
+    change_field(cell, board, row, col);
+    if is_board_full(board) {
+        let msg = if is_board_valid(board) {
+            "You have solved the puzzle."
+        } else {
+            "No, that is not right. Please continue solving."
+        };
+        alert(msg);
+    }
+}
 
 fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Element, JsValue> {
     let table = doc.create_element("table")?.dyn_into::<web_sys::HtmlTableElement>()?;
@@ -47,23 +92,20 @@ fn board_to_html(board: &Board, doc: &web_sys::Document) -> Result<web_sys::Elem
         let table_row = table.insert_row()?.dyn_into::<web_sys::HtmlTableRowElement>()?;
         for col in 0..board_size {
             let cell = table_row.insert_cell()?;
-            let (class, cell_text, need_callback) = match board.get(col, row) {
-                Field::X => ("fixed", "X", false),
-                Field::O => ("fixed", "O", false),
-                Field::Empty => ("guess", "_", true),
+            let field = board.get(col, row);
+            let (class, need_callback) = match field {
+                Field::X => ("fixed", false),
+                Field::O => ("fixed", false),
+                Field::Empty => ("guess", true),
             };
             cell.set_class_name(class);
-            cell.set_text_content(Some(cell_text));
+            cell.set_text_content(Some(field_to_str(field)));
             if need_callback {
                 let board = the_board.clone();
                 let cb = Closure::wrap(Box::new(move |event: web_sys::Event| {
-                    let field = board.read().unwrap().get(row, col);
-                    web_sys::console::log_6(
-                        &"row =".into(), &(row as f64).into(),
-                        &"col =".into(), &(col as f64).into(),
-                        &"field =".into(), &(field as i32 as f64).into());
+                    let mut board = board.write().unwrap();
                     let cell = event.target().unwrap().dyn_into::<web_sys::Element>().ok().unwrap();
-                    cell.set_text_content(Some("M"));
+                    handle_guess(&cell, &mut board, row, col);
                 }) as Box<FnMut(web_sys::Event)>);
                 cell.add_event_listener_with_event_listener("click", cb.as_ref().unchecked_ref())?;
                 cb.forget();
