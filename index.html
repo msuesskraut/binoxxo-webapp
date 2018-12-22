@@ -14,18 +14,28 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-9">
+        <div class="col-lg-6 col-sm-6 col-xs-6 col-md-6">
           <div id="board"></div>
         </div>
-        <div class="col-3">
-          <button type="button" class="btn btn-primary" id="new_game_btn">New Game</button>
+        <div class="col-lg-6 col-sm-6 col-xs-6 col-md-6">
+          <p>
+            <button type="button" class="btn btn-primary" id="new_game_btn">New Game</button>
+          </p>
+          <p>
+            <h2>Rules</h2>
+            <ul>
+              <li>Never more than two adjacent Xs or Os</li>
+              <li>Every row and column must contain the same number of Xs and Os</li>
+              <li>Every row and every column is unique</li>
+            </ul>
+          </p>
         </div>
       </div>
-      <div class="row">
-        <div class="alert alert-success" role="alert" id="alert_win">
+      <div class="row" style="margin-top:10px;margin-left:10px;">
+        <div class="alert alert-success game-msg" role="alert" id="alert_win">
           Congrates: You solved the puzzle!
         </div>
-        <div class="alert alert-danger" role="alert" id="alert_fail">
+        <div class="alert alert-danger game-msg" role="alert" id="alert_fail">
           Your current solution is not correct, please try and change the board.
         </div>
       </div>
