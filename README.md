@@ -1,5 +1,11 @@
 # Binoxxo as a single page webapp
 
+## Deprecated
+
+See [binoxxo-webapp-seed](https://github.com/msuesskraut/binoxxo-webapp-seed) for the rewrite with [seed](https://github.com/David-OConnor/seed).
+
+This repo is now read only.
+
 ## Acknowledgements
 
 * based on [`rust-webpack-template`](https://github.com/rustwasm/rust-webpack-template)
